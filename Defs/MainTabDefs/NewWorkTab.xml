@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<MainTabDefs>
+  
+	<MainTabDef>
+		<defName>WorkPresets</defName>
+		<label>presets</label>
+		<description>Allows to assign specified work presets to your colonists.</description>
+		<windowClass>WorkPresets.WP_MainTabWindow_Work</windowClass>
+		<concept>WorkTab</concept>
+		<tutorHighlightTag>ButtonWorkTab</tutorHighlightTag>
+		<order>11</order>
+	</MainTabDef>
+
+</MainTabDefs>
