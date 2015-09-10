@@ -292,10 +292,10 @@ namespace WorkPresets
                 int index = 0;
                 Pawn currentPawn;
 
-                foreach (KeyValuePair<Pawn, Preset> pair in PresetDatabase.assignedPresets)
+                foreach (KeyValuePair<PawnData, Preset> pair in PresetDatabase.assignedPresets)
                 {
                     if (pair.Value.Name.StartsWith(presetName_textField))
-                        currentPawn = pair.Key;
+                        currentPawn = pawns.Find(pawn => pawn.ThingID == pair.Key.ID);
                     else
                         continue;
 
@@ -441,8 +441,10 @@ namespace WorkPresets
                 Rect presetRect = new Rect(0f, 0f, 240f, rect.height).ContractedBy(margin);
                 Rect editRect = new Rect(presetRect.width, 0f, rect.width - presetRect.width, rect.height).ContractedBy(margin);
 
-                if (PresetDatabase.assignedPresets.ContainsKey(p))
-                    currentButton_presetName = PresetDatabase.assignedPresets[p].Name;
+                PawnData pawnData;
+                
+                if (PresetDatabase.assignedPresets.Keys.Any(pawn => pawn.ID == p.ThingID))
+                    currentButton_presetName = PresetDatabase.assignedPresets.First(pair => pair.Key.ID == p.ThingID).Value.Name;
                 else
                     currentButton_presetName = "Unassigned";
 
@@ -462,10 +464,13 @@ namespace WorkPresets
                                     if (!p.story.WorkTypeIsDisabled(job))
                                         p.workSettings.SetPriority(job, current.priorities[job]);
                                 }
-                                if (PresetDatabase.assignedPresets.ContainsKey(p))
-                                    PresetDatabase.assignedPresets[p] = current;
+                                if (PresetDatabase.assignedPresets.Keys.Any(pawn => pawn.ID == p.ThingID))
+                                {
+                                    pawnData = PresetDatabase.assignedPresets.Keys.First(pawn => pawn.ID == p.ThingID);
+                                    PresetDatabase.assignedPresets[pawnData] = current;
+                                }
                                 else
-                                    PresetDatabase.assignedPresets.Add(p, current);
+                                    PresetDatabase.assignedPresets.Add(new PawnData(p), current);
                             }, MenuOptionPriority.Medium, null, null));
                         }
                         Find.WindowStack.Add(new FloatMenu(list, false));
@@ -478,10 +483,11 @@ namespace WorkPresets
                 if (Widgets.TextButton(editRect, "Edit", true, false))
                 {
                     SoundDefOf.Click.PlayOneShotOnCamera();
-                    if (PresetDatabase.assignedPresets.ContainsKey(p))
+                    if (PresetDatabase.assignedPresets.Keys.Any(pawn => pawn.ID == p.ThingID))
                     {
-                        currentPreset = new Preset(PresetDatabase.assignedPresets[p]);
-                        presetName_textField = PresetDatabase.assignedPresets[p].Name;
+                        pawnData = PresetDatabase.assignedPresets.Keys.First(pawn => pawn.ID == p.ThingID);
+                        currentPreset = new Preset(PresetDatabase.assignedPresets[pawnData]);
+                        presetName_textField = PresetDatabase.assignedPresets[pawnData].Name;
                     }
                     else
                     {
@@ -528,9 +534,9 @@ namespace WorkPresets
 
         public void AssignChanges(Preset preset)
         {
-            foreach (KeyValuePair<Pawn, Preset> pair in PresetDatabase.assignedPresets)
+            foreach (KeyValuePair<PawnData, Preset> pair in PresetDatabase.assignedPresets)
             {
-                if (!pawns.Contains(pair.Key))
+                if (!pawns.Exists(pawn => pawn.ThingID == pair.Key.ID))
                 {
                     PresetDatabase.assignedPresets.Remove(pair.Key);
                 }
@@ -538,8 +544,9 @@ namespace WorkPresets
                 {
                     foreach (WorkTypeDef job in VisibleWorkTypeDefsInPriorityOrder)
                     {
-                        if (!pair.Key.story.WorkTypeIsDisabled(job))
-                            pair.Key.workSettings.SetPriority(job, preset.priorities[job]);
+                        pawns.Find(pawn => pawn.ThingID == pair.Key.ID);
+                        if (!pawns.Find(pawn => pawn.ThingID == pair.Key.ID).story.WorkTypeIsDisabled(job))
+                            pawns.Find(pawn => pawn.ThingID == pair.Key.ID).workSettings.SetPriority(job, preset.priorities[job]);
                     }
                 }
             }
